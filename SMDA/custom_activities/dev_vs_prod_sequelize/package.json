@@ -1,0 +1,20 @@
+{
+  "name": "dev_vs_prod_sequelize",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "devStartWin": "set NODE_ENV=development&& nodemon ./server.js",
+    "devStartMac": "NODE_ENV=development nodemon ./server.js",
+    "prodStartWin": "set NODE_ENV=production&& set PRODDB=mysql://root:root@localhost:3306/testdb&& nodemon ./server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "mysql2": "^1.6.4",
+    "sequelize": "^4.42.0"
+  }
+}

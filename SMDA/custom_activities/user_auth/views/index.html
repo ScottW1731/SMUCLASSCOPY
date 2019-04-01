@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+    <div id="registerDiv">
+        <h1>Register</h1>
+        <form>
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" class="form-control" id="registerEmail" aria-describedby="emailHelp" placeholder="Enter email">
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="registerPassword" placeholder="Password">
+            </div>
+            <button id="registerBtn" type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <button id="register" class="btn btn-default">Login</button>
+    </div>
+    <div id="loginDiv">
+            <h1>Log In</h1>
+        <form>
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" class="form-control" id="loginEmail" aria-describedby="emailHelp" placeholder="Enter email">
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="loginPassword" placeholder="Password">
+            </div>
+            <button id="loginBtn" type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <button id="login" class="btn btn-default">Register</button>
+    </div>
+    <div>
+        <button id="logout" class="btn btn-primary">Log Out</button>
+        <button id="clickme" class="btn btn-primary">CLICK ME AND SEE WHAT HAPPENS!</button>
+        <button id="parseToken" class="btn btn-primary">Parse Token</button>
+    </div>
+    <style>
+        #loginDiv {
+            display: none;
+        }
+    </style>
+    <script>
+        //these event listeners just toggle between login and register forms
+        $("#register").on("click", function () {
+            $("#loginDiv").css("display", "block");
+            $("#registerDiv").css("display", "none");
+        });
+        $("#login").on("click", function () {
+            $("#loginDiv").css("display", "none");
+            $("#registerDiv").css("display", "block");
+        });
+
+        //create new user
+        $("#registerBtn").on("click", function (event) {
+            event.preventDefault();
+            //send post request to api route to create new user
+            //grab email and password from form
+            $.post({
+                url: "/api/user/new",
+                data: {
+                    email: $("#registerEmail").val().trim(),
+                    password: $("#registerPassword").val().trim()
+                }
+            }).then(function (response) {
+                console.log(response);
+                //registration successfull, save token in localstorage for future validation
+                window.localStorage.setItem("logintoken", response.token);
+            }).catch(function (error) {
+                //user creation failed
+                console.error(error);
+            })
+        });
+
+        $("#loginBtn").on("click", function (event) {
+            event.preventDefault();
+            //attempt login by sending a post route with email and pass, retrieved from form
+            $.post({
+                url: "/api/user/login",
+                data: {
+                    email: $("#loginEmail").val().trim(),
+                    password: $("#loginPassword").val().trim()
+                }
+            }).then(function (response) {
+                console.log(response);
+                //login successful, save token in localstorage for future validation
+                window.localStorage.setItem("logintoken", response.token);
+            }).catch(function (error) {
+                //login failed
+                console.error(error);
+            })
+        });
+
+
+        $("#logout").on("click", function() {
+            //logging out is simple as removing token from localstorage
+            window.localStorage.removeItem("logintoken");
+        });
+
+        $("#parseToken").on("click", function() {
+            /*
+                JSON Web tokens typically follow a format of ****.***** where the ***** are encrypted strings.
+                The string before the . can be decrypted on the front end, while the string after can not.
+                Typically, the first half of the string is used to store user data that the front end may need
+                (i.e. user id, profile picture link, etc etc). This string can  be decrypted with window.atob(), which returns a JSON object.
+            */
+           var token = window.localStorage.getItem("logintoken").split('.')[1] //we only want first half of the JWT
+            console.log(JSON.parse(window.atob(token)))
+        });
+        /*
+            This is an example of how we can access a protected route.  When you make our ajax requests, simply add the header object shown below to your options object.
+        */
+        $("#clickme").on("click", function () {
+            $.get({
+                url: "/getprotectedstuff",
+                headers: {
+                    "Authorization": "Bearer " + window.localStorage.getItem("logintoken")
+                }
+            }).then(function (response) {
+                console.log(response);
+            }).catch(function (error) {
+                console.error(error);
+            });
+        });
+
+    </script>
+</body>
+
+</html>
